@@ -10,12 +10,12 @@ import (
 	"os"
 	"strings"
 	"test/coinkeeper/proto"
+	"test/coinkeeper/util"
 )
 
 const fileName = "CoinKeeper_export.csv"
-const expensesLimit = 1893
 const serverHost = "0.0.0.0"
-const serverPort = "50051"
+const serverPort = "50052"
 
 type ExpensesManager struct {
 
@@ -34,20 +34,20 @@ func main() {
 	server := grpc.NewServer()
 	expensespb.RegisterExpensesServiceServer(server, &ExpensesManager{})
 
-	allExpenses, err := getExpensesFromFile(fileName, expensesLimit)
-	if err != nil {
-		log.Fatalf("unable to get expenses: %v", err)
-	}
-
+	//allExpenses, err := getExpensesFromFile(fileName, expensesLimit)
+	//if err != nil {
+	//	log.Fatalf("unable to get expenses: %v", err)
+	//}
+	log.Printf("server listner started")
 	if err := server.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 
-	sum, err :=  allExpenses.sumAllForTag(targetTag)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("всего потрачено в %s: %v", targetTag, sum)
+	//sum, err :=  allExpenses.sumAllForTag(targetTag)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//fmt.Printf("всего потрачено в %s: %v", targetTag, sum)
 }
 
 func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.ExpensesRequest) (*expensespb.Expenses, error) {
@@ -72,21 +72,25 @@ func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.Expe
 	}
 
 	fmt.Printf("number of lines %v\n", linesLimit)
-
-	allExpenses := make(expenses, limit)
+	allExpenses := make([]*expensespb.Payment, limit)
 	for i, line := range lines {
+		date, err := util.ToUnixFormat(line[0])
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse date: %v", err)
+		}
 		tags := strings.Split(line[4], ", ")
-		data := Payment{
-			Data:line[0],
+		data := expensespb.Payment{
+			Date: date,
 			Type:line[1],
 			From:line[2],
 			To: line[3],
 			Tags:tags,
 			Amount:line[5],
 		}
-		allExpenses[i] = data
-		if i == limit-1 {
+		allExpenses[i] = &data
+		if i == int(limit)-1 {
 			break
 		}
 	}
+	return &expensespb.Expenses{Payments:allExpenses}, nil
 }

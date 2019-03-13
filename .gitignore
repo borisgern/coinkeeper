@@ -1,3 +1,5 @@
 
 .idea
 coinkeeper.iml
+expenses_client
+expenses_server
