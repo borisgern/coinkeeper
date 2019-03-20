@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:8083", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("couldn't connect: %v", err)
 	}
@@ -20,7 +20,10 @@ func main() {
 	client := expensespb.NewExpensesServiceClient(conn)
 
 	payments, err := getExpenses(client, "9/23/2019", "3/12/2019", 5)
-	log.Printf("payments: %v\n", payments)
+	if err != nil {
+		log.Fatalf("unable to get expenses: %v", err)
+	}
+	log.Printf("payments: %#v\n", payments[0])
 }
 
 func getExpenses(client expensespb.ExpensesServiceClient, fromDate, toDate string, limit int32) ([]*expensespb.Payment, error) {

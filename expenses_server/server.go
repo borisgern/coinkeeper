@@ -13,41 +13,12 @@ import (
 	"test/coinkeeper/util"
 )
 
-const fileName = "CoinKeeper_export.csv"
+const fileName = "./../CoinKeeper_export.csv"
 const serverHost = "0.0.0.0"
-const serverPort = "50052"
+const serverPort = "8083"
 
 type ExpensesManager struct {
 
-}
-
-func main() {
-
-	//fmt.Printf("unique tags: %v\n", allExpenses)
-	//fmt.Printf("unique tags: %#v\n", selectUniqueTags(allExpenses))
-
-	lis, err := net.Listen("tcp", serverHost + ":" + serverPort)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-
-	server := grpc.NewServer()
-	expensespb.RegisterExpensesServiceServer(server, &ExpensesManager{})
-
-	//allExpenses, err := getExpensesFromFile(fileName, expensesLimit)
-	//if err != nil {
-	//	log.Fatalf("unable to get expenses: %v", err)
-	//}
-	log.Printf("server listner started")
-	if err := server.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
-
-	//sum, err :=  allExpenses.sumAllForTag(targetTag)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//fmt.Printf("всего потрачено в %s: %v", targetTag, sum)
 }
 
 func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.ExpensesRequest) (*expensespb.Expenses, error) {
@@ -93,4 +64,33 @@ func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.Expe
 		}
 	}
 	return &expensespb.Expenses{Payments:allExpenses}, nil
+}
+
+func main() {
+
+	//fmt.Printf("unique tags: %v\n", allExpenses)
+	//fmt.Printf("unique tags: %#v\n", selectUniqueTags(allExpenses))
+
+	lis, err := net.Listen("tcp", serverHost + ":" + serverPort)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	server := grpc.NewServer()
+	expensespb.RegisterExpensesServiceServer(server, &ExpensesManager{})
+
+	//allExpenses, err := getExpensesFromFile(fileName, expensesLimit)
+	//if err != nil {
+	//	log.Fatalf("unable to get expenses: %v", err)
+	//}
+	log.Printf("server listner started")
+	if err := server.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+
+	//sum, err :=  allExpenses.sumAllForTag(targetTag)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//fmt.Printf("всего потрачено в %s: %v", targetTag, sum)
 }
