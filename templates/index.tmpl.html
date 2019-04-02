@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>Blog: Index</title>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$("#btn2").click(function (e) {
+				e.preventDefault();
+				$.get("/expenses/", function (data) {
+					console.log(data);
+					$("ol").append('<li>'+data.test+'</li>');
+				});
+			});
+		});
+
+	</script>
+
+</head>
+<body>
+<div class="container">
+	<ul>
+		{{ range .posts }}
+		<li><a href="/{{ . }}">{{ . }}</a></li>
+		{{ end }}
+	</ul>
+</div>
+<form>
+	From date:<br>
+	<input type="text" name="fromdate" value="9/23/2018">
+	<br>
+	To date:<br>
+	<input type="text" name="todate" value="3/12/2019">
+	<br><br>
+	<button id="btn2">check</button>
+</form>
+	<ol>
+
+	</ol>
+</body>
+</html>
