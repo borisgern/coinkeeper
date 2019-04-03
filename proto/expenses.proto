@@ -9,7 +9,7 @@ message Payment {
     string from = 3;
     string to = 4;
     repeated string tags = 5;
-    string amount = 6;
+    float amount = 6;
 }
 
 message Expenses {
@@ -20,6 +20,7 @@ message ExpensesRequest {
     int64 from_date = 1;
     int64 to_date = 2;
     int32 limit = 3;
+    string tag = 4;
 }
 
 service ExpensesService{
