@@ -2,4 +2,6 @@
 .idea
 coinkeeper.iml
 expenses_client
-expenses_server
+expenses_app
+grpc_client
+grpc_server
