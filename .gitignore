@@ -1,7 +1,7 @@
 
 .idea
 coinkeeper.iml
-expenses_client
-expenses_app
-grpc_client
 grpc_server
+.DS_Store
+/expenses_app/expenses_app
+/grpc_server/grpc_server

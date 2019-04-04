@@ -20,7 +20,7 @@ type ExpensesManager struct {
 }
 
 func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.ExpensesRequest) (*expensespb.Expenses, error) {
-	log.Printf("GetExpenses function request: %v", req)
+	em.Logger.Printf("GetExpenses function request: %v", req)
 	limit := req.GetLimit()
 	tag := req.GetTag()
 
