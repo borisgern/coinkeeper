@@ -15,6 +15,7 @@ message Payment {
 message Category {
     string name = 1;
     float amount = 2;
+    int32 frequency =3;
 }
 
 message Expenses {

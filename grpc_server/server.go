@@ -19,6 +19,11 @@ type ExpensesManager struct {
 	CSVLines [][]string
 }
 
+type CategoryData struct {
+	Amount float32
+	Frequency int32
+}
+
 func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.ExpensesRequest) (*expensespb.Expenses, error) {
 	em.Logger.Printf("GetExpenses function request: %v", req)
 	limit := req.GetLimit()
@@ -145,17 +150,22 @@ func readCSVFile() ([][]string, error) {
 }
 
 func  getCategoriesWithAmount(exp []*expensespb.Payment) []*expensespb.Category {
-	uniqueTags := make(map[string]float32,0)
+	uniqueTags := make(map[string]CategoryData,0)
 	for _, e := range exp {
 		for _, t := range e.Tags {
-			uniqueTags[t] = uniqueTags[t] + e.Amount
+			tempData := CategoryData{
+				Amount: uniqueTags[t].Amount + e.Amount,
+				Frequency: uniqueTags[t].Frequency + 1,
+			}
+			uniqueTags[t]= tempData
 		}
 	}
 	categories := make([]*expensespb.Category, len(uniqueTags))
 	var i int
 	for k, v := range uniqueTags {
 		category := &expensespb.Category{
-			Amount: v,
+			Amount: v.Amount,
+			Frequency: v.Frequency,
 			Name: k,
 		}
 		categories[i] = category

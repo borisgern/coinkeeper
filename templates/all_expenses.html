@@ -57,7 +57,7 @@
 					$("ol").empty();
 					var i;
 					for (i = 0; i < data.categories.length; i++) {
-						$("ol").append('<li>'+data.categories[i].name+' '+ data.categories[i].amount+'</li>');
+						$("ol").append('<li>'+'category: '+data.categories[i].name+'<br>'+'amount: '+ data.categories[i].amount+' RUB'+'<br>'+'frequency: '+ data.categories[i].frequency+'</li><br>');
 					}
 				});
 			});
