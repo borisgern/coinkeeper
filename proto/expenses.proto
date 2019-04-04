@@ -12,8 +12,17 @@ message Payment {
     float amount = 6;
 }
 
+message Category {
+    string name = 1;
+    float amount = 2;
+}
+
 message Expenses {
     repeated Payment payments = 1;
+}
+
+message Categories {
+    repeated Category categories = 1;
 }
 
 message ExpensesRequest {
@@ -23,6 +32,13 @@ message ExpensesRequest {
     string tag = 4;
 }
 
+message CategoriesRequest {
+    int64 from_date = 1;
+    int64 to_date = 2;
+    int32 limit = 3;
+}
+
 service ExpensesService{
     rpc GetExpenses(ExpensesRequest) returns (Expenses) {};
+    rpc GetCategories(CategoriesRequest) returns (Categories) {};
 }

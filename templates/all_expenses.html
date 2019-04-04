@@ -44,6 +44,24 @@
 					}
 				});
 			});
+
+			$("#btn-filter-categories").click(function (e) {
+				e.preventDefault();
+				$("ol").empty();
+				$("ol").append('<li>'+'loading...'+'</li>');
+				var limit = $("[name=limit]")[0].value
+				var from = $("[name=fromdate]")[0].value
+				var to = $("[name=todate]")[0].value
+				$.get("/categories/?sort=true&limit="+limit+"&from="+from+"&to="+to, function (data) {
+					console.log(data.categories[0]);
+					$("ol").empty();
+					var i;
+					for (i = 0; i < data.categories.length; i++) {
+						$("ol").append('<li>'+data.categories[i].name+' '+ data.categories[i].amount+'</li>');
+					}
+				});
+			});
+
 		});
 
 	</script>
@@ -68,6 +86,7 @@
 	<br><br>
 	<button id="btn-check-all">check all</button>
 	<button id="btn-check-tag">check tag</button>
+	<button id="btn-filter-categories">show categories</button>
 </form>
 	<ol>
 

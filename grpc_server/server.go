@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -17,6 +16,7 @@ const fileName = "./../CoinKeeper_export.csv"
 
 type ExpensesManager struct {
 	Logger *services.CtxLogger
+	CSVLines [][]string
 }
 
 func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.ExpensesRequest) (*expensespb.Expenses, error) {
@@ -24,18 +24,15 @@ func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.Expe
 	limit := req.GetLimit()
 	tag := req.GetTag()
 
-	f, err := os.Open(fileName)
-	if err != nil {
-		return &expensespb.Expenses{}, fmt.Errorf("unable to open file: %v", err)
-	}
-	defer f.Close()
-
-	lines, err := csv.NewReader(f).ReadAll()
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
+	if len(em.CSVLines) == 0 {
+		lines, err := readCSVFile()
+		if err != nil {
+			return &expensespb.Expenses{}, err
+		}
+		em.CSVLines = lines
 	}
 
-	linesLimit := len(lines)
+	linesLimit := len(em.CSVLines)
 
 	if int(limit) > linesLimit {
 		return &expensespb.Expenses{}, fmt.Errorf("max limit %v", linesLimit)
@@ -45,9 +42,9 @@ func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.Expe
 		limit = int32(linesLimit)
 	}
 
-	fmt.Printf("number of lines %v, limit %v\n", linesLimit, limit)
+	em.Logger.Printf("number of lines %v, limit %v\n", linesLimit, limit)
 	allExpenses := make([]*expensespb.Payment, 0, limit)
-	for _, line := range lines {
+	for _, line := range em.CSVLines {
 		date, err := util.ToUnixFormat(line[0])
 		if err != nil {
 			return &expensespb.Expenses{}, fmt.Errorf("unable to parse date: %v", err)
@@ -75,6 +72,59 @@ func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.Expe
 	return &expensespb.Expenses{Payments:allExpenses}, nil
 }
 
+func (em *ExpensesManager) GetCategories(ctx context.Context, req *expensespb.CategoriesRequest) (*expensespb.Categories, error) {
+	em.Logger.Printf("GetCategories function request: %v", req)
+	limit := req.GetLimit()
+
+	if len(em.CSVLines) == 0 {
+		lines, err := readCSVFile()
+		if err != nil {
+			return &expensespb.Categories{}, err
+		}
+		em.CSVLines = lines
+	}
+
+	linesLimit := len(em.CSVLines)
+
+	if int(limit) > linesLimit {
+		return &expensespb.Categories{}, fmt.Errorf("max limit %v", linesLimit)
+	}
+
+	if limit == 0 {
+		limit = int32(linesLimit)
+	}
+
+	em.Logger.Printf("number of lines %v, limit %v\n", linesLimit, limit)
+	allExpenses := make([]*expensespb.Payment, 0, limit)
+	for _, line := range em.CSVLines {
+		date, err := util.ToUnixFormat(line[0])
+		if err != nil {
+			return &expensespb.Categories{}, fmt.Errorf("unable to parse date: %v", err)
+		}
+		amount, err := strconv.ParseFloat(line[5], 2)
+		if date >= req.GetFromDate() && date <= req.GetToDate() {
+			tags := strings.Split(line[4], ", ")
+			data := expensespb.Payment{
+				Date: date,
+				Type:line[1],
+				From:line[2],
+				To: line[3],
+				Tags:tags,
+				Amount:float32(amount),
+			}
+			if data.Type == "Expense" {
+				allExpenses = append(allExpenses, &data)
+			}
+		}
+
+		if len(allExpenses) == int(limit) {
+			break
+		}
+	}
+
+	return &expensespb.Categories{Categories:getCategoriesWithAmount(allExpenses)}, nil
+}
+
 func checkTag(tags []string, tag string) (ok bool) {
 	for _, t := range tags {
 		if t == tag {
@@ -82,4 +132,34 @@ func checkTag(tags []string, tag string) (ok bool) {
 		}
 	}
 	return
+}
+
+func readCSVFile() ([][]string, error) {
+	f, err := os.Open(fileName)
+	if err != nil {
+		return nil, fmt.Errorf("unable to open file: %v", err)
+	}
+	defer f.Close()
+
+	return csv.NewReader(f).ReadAll()
+}
+
+func  getCategoriesWithAmount(exp []*expensespb.Payment) []*expensespb.Category {
+	uniqueTags := make(map[string]float32,0)
+	for _, e := range exp {
+		for _, t := range e.Tags {
+			uniqueTags[t] = uniqueTags[t] + e.Amount
+		}
+	}
+	categories := make([]*expensespb.Category, len(uniqueTags))
+	var i int
+	for k, v := range uniqueTags {
+		category := &expensespb.Category{
+			Amount: v,
+			Name: k,
+		}
+		categories[i] = category
+		i++
+	}
+	return categories
 }
