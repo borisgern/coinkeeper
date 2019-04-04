@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>Expenses analysis</title>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$("#btn-check-all").click(function (e) {
+				e.preventDefault();
+				$("ol").empty();
+				$("ol").append('<li>'+'loading...'+'</li>');
+				var limit = $("[name=limit]")[0].value
+				var from = $("[name=fromdate]")[0].value
+				var to = $("[name=todate]")[0].value
+				$.get("/expenses/?sort=true&limit="+limit+"&from="+from+"&to="+to, function (data) {
+					$("ol").empty();
+					var i;
+					for (i = 0; i < data.expenses.length; i++) {
+						var date = new Date(data.expenses[i].date*1000).toLocaleDateString("en-US")
+						$("ol").append('<li>'+date+' '+data.expenses[i].to+' '+ data.expenses[i].tags + ' '+ ' ' + data.expenses[i].amount+'</li>');
+					}
+				});
+			});
+
+			$("#btn-check-tag").click(function (e) {
+				e.preventDefault();
+				$("ol").empty();
+				$("ol").append('<li>'+'loading...'+'</li>');
+				var limit = $("[name=limit]")[0].value
+				var from = $("[name=fromdate]")[0].value
+				var to = $("[name=todate]")[0].value
+				var tag = $("[name=tag]")[0].value
+				$.get("/expenses/?sort=true&limit="+limit+"&from="+from+"&to="+to+"&tag="+tag, function (data) {
+					console.log(data.expenses[0]);
+					$("ol").empty();
+					var i;
+					$("[name=tag-result]")[0].value = data.tagSum
+					for (i = 0; i < data.expenses.length; i++) {
+						var date = new Date(data.expenses[i].date*1000).toLocaleDateString("en-US")
+						$("ol").append('<li>'+date+' '+data.expenses[i].to+' '+ data.expenses[i].tags + ' '+ ' ' + data.expenses[i].amount+'</li>');
+					}
+				});
+			});
+		});
+
+	</script>
+
+</head>
+<body>
+<form>
+	From date:<br>
+	<input type="text" name="fromdate" value="9/23/2018">
+	<br>
+	To date:<br>
+	<input type="text" name="todate" value="3/12/2019">
+	<br>
+	Limit:<br>
+	<input type="text" name="limit" value="3">
+	<br>
+	Tag:<br>
+	<input type="text" name="tag" value="ашан">
+	<br>
+	Sum:<br>
+	<input type="text" name="tag-result" disabled>
+	<br><br>
+	<button id="btn-check-all">check all</button>
+	<button id="btn-check-tag">check tag</button>
+</form>
+	<ol>
+
+	</ol>
+</body>
+</html>

@@ -1,0 +1,11 @@
+logger:
+  log_level: debug # debug|info|error
+
+http_server:
+  server_port: 8084
+  server_host: localhost
+  gin_release_mode: false
+
+grpc_server:
+  server_port: 8083
+  server_host: localhost
