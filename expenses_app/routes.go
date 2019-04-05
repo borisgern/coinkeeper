@@ -74,7 +74,6 @@ func(app *expensesApp) GetCategories(ctx *gin.Context) {
 	if sorting == "true" {
 		sort.Slice(categories, func(i, j int) bool { return categories[i].Amount > categories[j].Amount})
 	}
-
 	HandleResultOrError(ctx, gin.H{"categories": categories, "errorMsg": err}, err, "")
 }
 

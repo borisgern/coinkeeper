@@ -57,6 +57,11 @@ func (em *ExpensesManager) GetExpenses(ctx context.Context, req *expensespb.Expe
 		amount, err := strconv.ParseFloat(line[5], 2)
 		if date >= req.GetFromDate() && date <= req.GetToDate() {
 			tags := strings.Split(line[4], ", ")
+			if len(tags) == 1 && tags[0] == "" {
+				tags[0] = line[3]
+			} else {
+				tags = append(tags, line[3])
+			}
 			data := expensespb.Payment{
 				Date: date,
 				Type:line[1],
@@ -109,6 +114,11 @@ func (em *ExpensesManager) GetCategories(ctx context.Context, req *expensespb.Ca
 		amount, err := strconv.ParseFloat(line[5], 2)
 		if date >= req.GetFromDate() && date <= req.GetToDate() {
 			tags := strings.Split(line[4], ", ")
+			if len(tags) == 1 && tags[0] == "" {
+				tags[0] = line[3]
+			} else {
+				tags = append(tags, line[3])
+			}
 			data := expensespb.Payment{
 				Date: date,
 				Type:line[1],
@@ -127,7 +137,7 @@ func (em *ExpensesManager) GetCategories(ctx context.Context, req *expensespb.Ca
 		}
 	}
 
-	return &expensespb.Categories{Categories:getCategoriesWithAmount(allExpenses)}, nil
+	return &expensespb.Categories{Categories:getCategoriesWithAmount(allExpenses, int(limit))}, nil
 }
 
 func checkTag(tags []string, tag string) (ok bool) {
@@ -149,7 +159,7 @@ func readCSVFile() ([][]string, error) {
 	return csv.NewReader(f).ReadAll()
 }
 
-func  getCategoriesWithAmount(exp []*expensespb.Payment) []*expensespb.Category {
+func  getCategoriesWithAmount(exp []*expensespb.Payment, limit int) []*expensespb.Category {
 	uniqueTags := make(map[string]CategoryData,0)
 	for _, e := range exp {
 		for _, t := range e.Tags {
@@ -160,7 +170,11 @@ func  getCategoriesWithAmount(exp []*expensespb.Payment) []*expensespb.Category 
 			uniqueTags[t]= tempData
 		}
 	}
-	categories := make([]*expensespb.Category, len(uniqueTags))
+	categoriesLen := limit
+	if len(uniqueTags) < limit {
+		categoriesLen = len(uniqueTags)
+	}
+	categories := make([]*expensespb.Category, categoriesLen)
 	var i int
 	for k, v := range uniqueTags {
 		category := &expensespb.Category{
@@ -170,6 +184,9 @@ func  getCategoriesWithAmount(exp []*expensespb.Payment) []*expensespb.Category 
 		}
 		categories[i] = category
 		i++
+		if i == limit {
+			break
+		}
 	}
 	return categories
 }
